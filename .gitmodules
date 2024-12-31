@@ -1,0 +1,6 @@
+[submodule "HW1"]
+	path = HW1
+	url = https://github.com/Tasneemghazal/Calculator.git
+[submodule "HW2"]
+	path = HW2
+	url = https://github.com/Tasneemghazal/HW2-ToDoApp.git
