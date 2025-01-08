@@ -1,36 +1,29 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import AddForm from "../components/add-form/add-form.component";
 import Student from "../components/student/student.component";
 import useLocalStorage from "../hooks/local-storage.hook";
 import { IStudent } from "../types";
+import studentReducer from "../states/reducer";
 
 const Main = () => {
-  const [studentsList, setStudentsList] = useState<IStudent[]>([]);
-  const [totalAbsents, setTotalAbsents] = useState(0);
   const lastStdRef = useRef<HTMLDivElement>(null);
-
-  const { storedData } = useLocalStorage(studentsList, 'students-list');
+  const [state, dispatch] = useReducer(studentReducer, { students: [], totalAbsents: 0});
+  const { storedData } = useLocalStorage(state.students, 'students-list');
 
   useEffect(() => {
-    const stdList: IStudent[] = storedData || [];
-    const totalAbs = stdList.reduce((prev, cur) => { return prev + cur.absents }, 0);
-    setTotalAbsents(totalAbs);
-    setStudentsList(stdList);
+    dispatch({type: "INIT_DATA", payload:storedData ||[]});
   }, [storedData]);
 
   const removeFirst = () => {
-    const newList = [...studentsList];
-    newList.shift();  // removes the first item
-    setStudentsList(newList);
+    dispatch({type: "REMOVE_FIRST"})
   }
 
   const handleAbsentChange = (id: string, change: number) => {
-    setTotalAbsents(totalAbsents + change);
-    setStudentsList(studentsList.map(std => std.id === id ? { ...std, absents: std.absents + change } : std));
+    dispatch({type: "ABSENT_CHANGE", payload: {id, change}})
   }
 
   const handleAddStudent = (newStudent: IStudent) => {
-    setStudentsList([newStudent, ...studentsList]);
+    dispatch({type: 'ADD_STUDENT', payload: newStudent})
   }
 
   const scrollToLast = () => {
@@ -45,10 +38,10 @@ const Main = () => {
       <div className='stats'>
         <button onClick={removeFirst}>POP Student</button>
         <button onClick={scrollToLast}>Scroll to Last</button>
-        <b style={{ fontSize: '12px', fontWeight: 100, color: 'gray' }}>Total Absents {totalAbsents}</b>
+        <b style={{ fontSize: '12px', fontWeight: 100, color: 'gray' }}>Total Absents {state.totalAbsents}</b>
       </div>
       {
-        studentsList.map(student => (
+        state.students.map(student => (
           <Student
             key={student.id}
             id={student.id}
